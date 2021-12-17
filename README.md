@@ -27,7 +27,7 @@ Your tech lead is excited to work with you and has laid out a development roadma
 The back-end is all about security and connecting the front-end to database data and actions. 
 
 1. Managing user access with Spring Security
- - You have to restrict unauthorized users from accessing pages other than the login and signup pages. To do this, you must create a security configuration class that extends the `WebSecurityConfigurerAdapter` class from Spring. Place this class in a package reserved for security and configuration. Often this package is called `security` or `config`.
+ - You have to restrict unauthorized user from accessing pages other than the login and signup pages. To do this, you must create a security configuration class that extends the `WebSecurityConfigurerAdapter` class from Spring. Place this class in a package reserved for security and configuration. Often this package is called `security` or `config`.
  - Spring Boot has built-in support for handling calls to the `/login` and `/logout` endpoints. You have to use the security configuration to override the default login page with one of your own, discussed in the front-end section.
  - You also need to implement a custom `AuthenticationProvider` which authorizes user logins by matching their credentials against those stored in the database.  
 
@@ -48,12 +48,12 @@ The back-end is all about security and connecting the front-end to database data
 Your tech lead has done a thorough job developing HTML templates for the required application pages. They have included fields, modal forms, success and error message elements, as well as styling and functional components using Bootstrap as a framework. You must edit these templates and insert Thymeleaf attributes to supply the back-end data and functionality described by the following individual page requirements:
 
 1. Login page
- - Everyone should be allowed access to this page, and users can use this page to login to the application. 
+ - Everyone should be allowed access to this page, and user can use this page to login to the application. 
  - Show login errors, like invalid username/password, on this page. 
 
 
 2. Sign Up page
- - Everyone should be allowed access to this page, and potential users can use this page to sign up for a new account. 
+ - Everyone should be allowed access to this page, and potential user can use this page to sign up for a new account. 
  - Validate that the username supplied does not already exist in the application, and show such signup errors on the page when they arise.
  - Remember to store the user's password securely!
 
@@ -100,7 +100,7 @@ Your tech lead trusts you to do a good job, but testing is important whether you
 
 ## Final Tips and Tricks
 ### Password Security
-Make sure not to save the plain text credentials of the application's users in the database. That's a recipe for data breach disaster! Use a hashing function to store a scrambled version instead. Your tech lead gave you a class called `HashService` that can hash passwords for you. When the user signs up, you only store a hashed version of their password in the database, and on login, you hash the password attempt before comparing it with the hashed password in the database. Your tech lead knows that can be a little confusing, so they provided this code sample to help illustrate the idea:
+Make sure not to save the plain text credentials of the application's user in the database. That's a recipe for data breach disaster! Use a hashing function to store a scrambled version instead. Your tech lead gave you a class called `HashService` that can hash passwords for you. When the user signs up, you only store a hashed version of their password in the database, and on login, you hash the password attempt before comparing it with the hashed password in the database. Your tech lead knows that can be a little confusing, so they provided this code sample to help illustrate the idea:
 
 ```
 byte[] salt = new byte[16];
