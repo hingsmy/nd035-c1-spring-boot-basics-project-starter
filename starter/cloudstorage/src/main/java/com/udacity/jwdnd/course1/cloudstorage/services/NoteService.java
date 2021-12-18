@@ -14,13 +14,29 @@ public class NoteService {
     @Autowired
     NoteMapper noteMapper;
 
-    public int createNote(Note note) {
+    public boolean isNoteExit(Integer noteId) {
+        return noteMapper.getNote(noteId) != null;
+    }
 
-        return noteMapper.insert(note);
+
+    public int saveNote(Note note) {
+
+        if (isNoteExit(note.getNoteId())) {
+
+            return noteMapper.update(note);
+        } else {
+            return noteMapper.insert(note);
+        }
+
     }
 
     public List<Note> getNotes(User user) {
 
         return noteMapper.getAllNotes(user);
+    }
+
+    public void deleteNote(Integer theId) {
+
+        noteMapper.delete(theId);
     }
 }
