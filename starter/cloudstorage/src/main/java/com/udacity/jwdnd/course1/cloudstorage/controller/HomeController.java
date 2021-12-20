@@ -24,13 +24,16 @@ public class HomeController {
     @GetMapping("/")
     public String getHomePage(Authentication authentication, Model model) {
 
+        User user = new User();
         if (authentication != null) {
             String username = authentication.getName();
-            User user = userService.getUser(username);
+            user = userService.getUser(username);
             List<Note> notes = noteService.getNotes(user);
 
             model.addAttribute("notes", notes);
         }
+
+        model.addAttribute("user", user);
 
 
         Note aNote = new Note();

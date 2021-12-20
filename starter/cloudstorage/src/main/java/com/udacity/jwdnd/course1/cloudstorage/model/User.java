@@ -17,6 +17,10 @@ public class User {
         this.lastName = lastName;
     }
 
+    public User() {
+
+    }
+
     public Integer getUserId() {
         return userId;
     }

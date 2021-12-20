@@ -1,9 +1,13 @@
 package com.udacity.jwdnd.course1.cloudstorage.controller;
 
+import com.udacity.jwdnd.course1.cloudstorage.model.User;
+import com.udacity.jwdnd.course1.cloudstorage.services.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -23,10 +27,14 @@ import java.util.Objects;
 public class FileController {
 
     private final Path fileStorageDir;
+    private Path userFileStorageDir;
 
     public FileController(@Value("./files/") Path fileStorageDir) {
         this.fileStorageDir = fileStorageDir;
     }
+
+    @Autowired
+    UserService userService;
 
     @PostConstruct
     public void ensureDirectoryExists() throws IOException {
@@ -36,11 +44,24 @@ public class FileController {
     }
 
     @PostMapping(value = "/upload", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+    public String uploadFile(Authentication authentication, @RequestParam("file") MultipartFile file) throws IOException {
+
+        Integer userId = null;
+        if (authentication != null) {
+
+            User user = userService.getUser(authentication.getName());
+            userId = user.getUserId();
+        }
+
+        this.userFileStorageDir = this.fileStorageDir.resolve(String.valueOf(userId));
+
+        if (!Files.exists(userFileStorageDir)) {
+            Files.createDirectories(userFileStorageDir);
+        }
 
         String targetFileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
 
-        final Path targetPath = this.fileStorageDir.resolve(targetFileName);
+        final Path targetPath = userFileStorageDir.resolve(targetFileName);
 
         try (InputStream in = file.getInputStream()) {
             try (OutputStream out = Files.newOutputStream(targetPath, StandardOpenOption.CREATE)) {
@@ -53,9 +74,11 @@ public class FileController {
         return "result";
     }
 
-    @GetMapping("/{fileName}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable("fileName") String fileName) {
-        final Path targetPath = this.fileStorageDir.resolve(fileName);
+    @GetMapping("{userid}/{fileName}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable("userid") String userId, @PathVariable("fileName") String fileName) {
+
+
+        final Path targetPath = this.userFileStorageDir.resolve(fileName);
         if (!Files.exists(targetPath)) {
             return ResponseEntity.notFound().build();
         }
