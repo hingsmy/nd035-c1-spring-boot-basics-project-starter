@@ -1,10 +1,9 @@
 package com.udacity.jwdnd.course1.cloudstorage.controller;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.PathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -60,8 +59,15 @@ public class FileController {
         if (!Files.exists(targetPath)) {
             return ResponseEntity.notFound().build();
         }
+        FileSystemResource resource = new FileSystemResource(targetPath);
+        MediaType mediaType = MediaTypeFactory.getMediaType(resource).orElse(MediaType.APPLICATION_OCTET_STREAM);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(mediaType);
 
-        return ResponseEntity.ok(new PathResource(targetPath));
+        ContentDisposition disposition = ContentDisposition.attachment().filename(Objects.requireNonNull(resource.getFilename())).build();
+        headers.setContentDisposition(disposition);
+
+        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
     }
 
 //    private static Optional<String> getFileExtension(String fileName) {
