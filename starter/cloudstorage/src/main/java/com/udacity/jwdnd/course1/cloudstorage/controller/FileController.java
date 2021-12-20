@@ -1,19 +1,22 @@
 package com.udacity.jwdnd.course1.cloudstorage.controller;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.PathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.Objects;
 
 @Controller
@@ -33,29 +36,41 @@ public class FileController {
         }
     }
 
-    @PostMapping("/upload")
-    public String handleFileUpload(@RequestParam("file")MultipartFile file) {
+    @PostMapping(value = "/upload", produces = MediaType.TEXT_PLAIN_VALUE)
+    public String uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
 
-        // check if file is empty
-        if (file.isEmpty()) {
-            return "redirect:/";
+        String targetFileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+
+        final Path targetPath = this.fileStorageDir.resolve(targetFileName);
+
+        try (InputStream in = file.getInputStream()) {
+            try (OutputStream out = Files.newOutputStream(targetPath, StandardOpenOption.CREATE)) {
+                in.transferTo(out);
+            }
         }
 
-        // normalise the file path
-        String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-
-
-        //save the file on the local file system
-        try {
-            String UPLOAD_DIR = "./files/";
-            Path path = Paths.get(UPLOAD_DIR + fileName);
-            System.out.println(path);
-            Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        System.out.println(targetFileName);
 
         return "result";
     }
+
+    @GetMapping("/{fileName}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable("fileName") String fileName) {
+        final Path targetPath = this.fileStorageDir.resolve(fileName);
+        if (!Files.exists(targetPath)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(new PathResource(targetPath));
+    }
+
+//    private static Optional<String> getFileExtension(String fileName) {
+//        final int indexOfLastDot = fileName.lastIndexOf('.');
+//
+//        if (indexOfLastDot == -1) {
+//            return Optional.empty();
+//        } else {
+//            return Optional.of(fileName.substring(indexOfLastDot + 1));
+//        }
+//    }
 }
